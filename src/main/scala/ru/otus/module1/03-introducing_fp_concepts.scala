@@ -32,7 +32,19 @@ object recursion {
   }
 
 
-  def factRec(n: Int): Int = ???
+  def factRec(n: Int): Int = if(n <= 0) 1 else n * factRec(n - 1)
+
+
+  def factTailRec(n: Int): Int = {
+    @tailrec
+    def loop(x: Int, accum: Int): Int = {
+      if( n <= 0) accum
+      else loop(x - 1, x * accum)
+    }
+    loop(n, 1)
+  }
+
+
 
 
   /**
@@ -54,7 +66,13 @@ object hof{
 
   // обертки
 
-  def logRunningTime = ???
+  def logRunningTime[A, B](f: A => B): A => B = a => {
+    val start = System.currentTimeMillis()
+    val result: B = f(a)
+    val end = System.currentTimeMillis()
+    println(s"Running time: ${end - start}")
+    result
+  }
 
 
 
@@ -63,16 +81,26 @@ object hof{
 
   def isOdd(i: Int): Boolean = i % 2 > 0
 
-  val isEven: Int => Boolean = ???
+  def not[A](f: A => Boolean): A => Boolean = a => !f(a)
+
+  lazy val isEven: Int => Boolean = not(isOdd)
 
 
 
   // изменение самой функции
 
-  def partial = ???
+  def partial[A, B, C](a: A, f: (A, B) => C): B => C =
+    b => f(a, b)
+
+  def partial2[A, B, C](a: A, f: (A, B) => C): B => C = f.curried(a)
 
 
   def sum(x: Int, y: Int): Int = x + y
+
+
+  val p: Int => Int = partial(3, sum)
+  p(2) // 5
+  p(3) // 5
 
 
 
@@ -110,13 +138,49 @@ object hof{
 
   class Animal
   class Dog extends Animal
+  class Cat extends Animal
 
   def treat(animal: Animal): Unit = ???
+  def treat(animal: Option[Animal]): Unit = ???
+
+  val d: Dog = ???
+  val dOpt: Option[Dog] = ???
+  treat(d)
+  treat(dOpt)
 
   /**
    *
    * Реализовать структуру данных Option, который будет указывать на присутствие либо отсутсвие результата
    */
+
+  // Variance
+  // 1. Invariance
+  // 2. Covariance
+  // 3. Contrvariance
+
+  trait Option[+T]{
+    def isEmpty: Boolean = if(this.isInstanceOf[None.type]) true else false
+
+    def get: T = ???
+
+    def map[B](f: T => B): Option[B] = flatMap(v => Option(f(v)))
+
+    def flatMap[B](f: T => Option[B]): Option[B] = ???
+  }
+
+  object Option{
+    def apply[T](v: T): Option[T] = Some(v)
+  }
+
+  val o1: Option[Int] = ???
+
+  val o2: Option[Int] = o1.map(_ + 2)
+
+  case class Some[T](v: T) extends Option[T]
+  case object None extends Option[Nothing]
+
+  var o: Option[Animal] = None
+  var i: Option[Int] = None
 
 
 
@@ -153,6 +217,21 @@ object hof{
     * Cons - непустой, содержит первый элемент (голову) и хвост (оставшийся список)
     */
 
+   Function1
+
+   trait List[+T]{
+     def ::[TT >: T](elem: TT): List[TT] = ???
+   }
+   case class ::[T](head: T, tail: List[T]) extends List[T]
+   case object Nil extends List[Nothing]
+
+   object List{
+     def apply[A](v: A*): List[A] = if(v.isEmpty) Nil
+     else new ::(v.head, apply(v.tail:_*))
+   }
+
+   val l1: List[Nothing] = List()
+   val l2 = List(1, 2, 3)
 
 
 
