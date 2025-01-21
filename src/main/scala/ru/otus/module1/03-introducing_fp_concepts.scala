@@ -217,7 +217,6 @@ object hof{
     * Cons - непустой, содержит первый элемент (голову) и хвост (оставшийся список)
     */
 
-   Function1
 
    trait List[+T]{
      def ::[TT >: T](elem: TT): List[TT] = ???
