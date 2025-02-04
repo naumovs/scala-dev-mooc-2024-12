@@ -170,6 +170,8 @@ object hof{
     def map[B](f: T => B): Option[B] = flatMap(v => Option(f(v)))
 
     def flatMap[B](f: T => Option[B]): Option[B] = ???
+
+    def zip[B](obj: Option[B]): Option[(T, B)] = ???
   }
 
   object Option{
