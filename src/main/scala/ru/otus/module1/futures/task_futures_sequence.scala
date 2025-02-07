@@ -2,7 +2,10 @@ package ru.otus.module1.futures
 
 import ru.otus.module1.futures.HomeworksUtils.TaskSyntax
 
+import scala.collection.BuildFrom
+import scala.concurrent.Future.successful
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 object task_futures_sequence {
 
@@ -19,8 +22,21 @@ object task_futures_sequence {
    * @param futures список асинхронных задач
    * @return асинхронную задачу с кортежом из двух списков
    */
-  def fullSequence[A](futures: List[Future[A]])
-                     (implicit ex: ExecutionContext): Future[(List[A], List[Throwable])] =
-    task"Реализуйте метод `fullSequence`" ()
+
+  def fullSequence[A](futures: List[Future[A]])(implicit ex: ExecutionContext): Future[(List[A], List[Throwable])] = {
+
+    // каждый элемента списка -> Future
+    val results: List[Future[Try[A]]] = futures.map(_.transform(Success(_)))
+
+    // Теперь список Futures
+    val fList: Future[List[Try[A]]] = Future.sequence(results)
+
+    // Разделяем
+    fList.map { results =>
+      val successes = results.collect { case Success(value) => value }
+      val failures = results.collect { case Failure(exception) => exception }
+      (successes, failures)
+    }
+  }
 
 }
