@@ -1,13 +1,17 @@
 package ru.otus.module3
 
-import zio.{Scope, Task, ZIO, ZIOAppArgs, ZIOAppDefault}
+import zio._
 
 
 object ZIOMain {
 
   def main(args: Array[String]): Unit = {
     val z1: Task[Unit] = ZIO.attempt(println("Hello"))
-    zio.Runtime.default.run(z1)
+
+    //println(zioRecursion.factorial(10000))
+    Unsafe.unsafe { implicit unsafe =>
+      zio.Runtime.default.unsafe.run(multipleErrors.app)
+    }
   }
 
 }
