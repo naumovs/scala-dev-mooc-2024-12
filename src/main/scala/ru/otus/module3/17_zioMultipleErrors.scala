@@ -14,11 +14,11 @@ object multipleErrors{
 
     val z2: IO[E2.type, Int] = ZIO.fail(E2)
 
-    lazy val result = z1 zipPar z2
+    lazy val result = z1 raceEither  z2
 
     lazy val app = result.tapErrorCause{
-        case Both(left, Both(l2, r2)) =>
-            ZIO.attempt(println(l2.failureOption)) zipRight
-                ZIO.attempt(println(r2.failureOption))
+        case Both(left, right) =>
+            ZIO.attempt(println(left.failureOption)) zipRight
+                ZIO.attempt(println(right.failureOption))
     }
 }
