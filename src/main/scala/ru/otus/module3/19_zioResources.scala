@@ -267,6 +267,7 @@ object zioScope{
     }
   }
 
+
   // параллельное множественное открытие / закрытие
   lazy val files2 = ???
 
@@ -287,7 +288,7 @@ object zioScope{
   
 
 
-  val eff1: Task[BufferedSource] = ???
+  val eff1: Task[BufferedSource] = ZIO.attempt(Source.fromFile("test.txt"))
 
   val cc2: ZIO[Any with Scope, Throwable, BufferedSource] =
     eff1.withFinalizer(s => ZIO.attempt(s.close()).orDie)

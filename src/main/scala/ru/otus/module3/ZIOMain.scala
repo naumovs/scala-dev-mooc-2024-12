@@ -16,7 +16,7 @@ object ZIOMain {
 
     Unsafe.unsafe { implicit unsafe =>
       zio.Runtime.default.unsafe.run(
-        zioScope.cc.provideEnvironment(environment)
+        di.cc3.provideEnvironment(environment)
       )
     }
 
