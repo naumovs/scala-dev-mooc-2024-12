@@ -102,7 +102,39 @@ package object catsHomework {
       * где в качестве типа ошибки будет String
       */
 
-     //Не сумел понять как упаковать Either в контекст F
-     val eitherME = ???
+     type StringEither[A] = Either[String, A]
+
+     val eitherME = new MonadError[StringEither, Throwable]{
+
+       override def raiseError[A](e: Throwable): StringEither[A] = Left(e.getMessage)
+
+       override def handleErrorWith[A](fa: StringEither[A])(f: Throwable => StringEither[A]): StringEither[A] =
+         fa match {
+           case Left(value) => f {
+             new Throwable(value)
+           }
+           case Right(_) => fa
+         }
+
+       override def handleError[A](fa: StringEither[A])(f: Throwable => A): StringEither[A] =
+         fa match {
+           case Left(value) => Left(f(new Throwable(value)).toString)
+           case Right(_) => fa
+         }
+
+       override def ensure[A](fa: StringEither[A])(e: Throwable)(f: A => Boolean): StringEither[A] =
+         fa match {
+           case Left(value) => Left(value)
+           case Right(value) => if(f(value)) fa else Left(e.getMessage)
+         }
+
+       override def flatMap[A, B](fa: StringEither[A])(f: A => StringEither[B]): StringEither[B] =
+         fa match {
+           case Left(value) => Left(value)
+           case Right(value) => f(value)
+         }
+
+       override def pure[A](v: A): StringEither[A] = Right(v)
+     }
 //
 }
