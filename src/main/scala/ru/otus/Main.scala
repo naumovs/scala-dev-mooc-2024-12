@@ -12,7 +12,6 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-    println(treeFunctor.map(Branch(Leaf(1), Branch(Leaf(2), Leaf(3))))(i => i + 1))
 
 //      println(s"Hello " +
 //        s"from ${Thread.currentThread().getName}")
@@ -63,6 +62,7 @@ object Main {
     // Thread.sleep(4000)
 //     functionalProgram.declarativeEncoding.interpret(
 //       functionalProgram.declarativeEncoding.greet)
+
 
 
   }
