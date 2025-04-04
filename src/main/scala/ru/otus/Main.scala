@@ -1,6 +1,7 @@
 package ru.otus
 
 import ru.otus.module1.{future, hof, threads, type_system}
+import ru.otus.module2.catsHomework.{Branch, Leaf, treeFunctor}
 import ru.otus.module2.{catsTypeClasses, dataStructures, functional, transformers, validation}
 import ru.otus.module2.implicits.{implicit_conversions, implicit_scopes}
 import ru.otus.module3.functional_effects.functionalProgram
@@ -10,6 +11,7 @@ import scala.util.{Failure, Success}
 object Main {
 
   def main(args: Array[String]): Unit = {
+
 
 //      println(s"Hello " +
 //        s"from ${Thread.currentThread().getName}")
