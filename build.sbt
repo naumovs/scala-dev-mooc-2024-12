@@ -8,5 +8,6 @@ version := "1.0"
 
 libraryDependencies += Dependencies.ScalaTest
 libraryDependencies += Dependencies.CatsCore
+libraryDependencies += Dependencies.CatsEffect
 libraryDependencies ++= Dependencies.ZIO
 libraryDependencies ++= Dependencies.ZioConfig
