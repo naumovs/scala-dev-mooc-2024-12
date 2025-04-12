@@ -3,6 +3,8 @@ package ru.otus.module3.catsconcurrency.cats_effect_homework
 import cats.effect.{IO, Sync}
 import cats.implicits._
 import Wallet.{WalletError, _}
+import cats.data.EitherT
+import cats.{Functor, Group}
 import cats.effect.kernel.Resource.{Pure, both}
 import cats.kernel.Semigroup
 
@@ -54,15 +56,16 @@ final class FileWallet[F[_]: Sync](id: WalletId) extends Wallet[F] {
     }
   } yield ()
 
+  private type WithdrawalResult = Either[WalletError, Unit]
 
-  override def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = for {
-      currentBalance <- balance
-      _ <- if (currentBalance >= amount) {
-        topup(-amount)
-      } else {
-        Sync[F].delay(BalanceTooLow)
-      }
-    } yield Right(())
+  override def withdraw(amount: BigDecimal): F[WithdrawalResult] = for {
+    currentBalance <- balance
+    approved <- Sync[F].delay {currentBalance >= amount}
+    result <- Sync[F].whenA[Unit](approved)(topup(-amount))
+  } yield result match {
+    case () => Right(())
+    case _ => Left(Wallet.BalanceTooLow)
+  }
 }
 
 object Wallet {
