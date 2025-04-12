@@ -60,7 +60,7 @@ final class FileWallet[F[_]: Sync](id: WalletId) extends Wallet[F] {
 
   override def withdraw(amount: BigDecimal): F[WithdrawalResult] = for {
     currentBalance <- balance
-    approved <- Sync[F].delay {currentBalance >= amount}
+    approved = currentBalance >= amount
     result <- Sync[F].whenA[Unit](approved)(topup(-amount))
   } yield result match {
     case () => Right(())
