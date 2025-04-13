@@ -6,7 +6,7 @@ object Dependencies {
 
   lazy val ScalaTest = "org.scalatest" %% "scalatest" % "3.2.19"
   lazy val CatsCore = "org.typelevel" %% "cats-core" % "2.13.0"
-  lazy val CatsEffect = "org.typelevel" %% "cats-effect" % "3.6.1"
+  lazy val CatsEffect = "org.typelevel" %% "cats-effect" % "3.4.5"
   lazy val ZIO: Seq[ModuleID] = Seq("dev.zio" %% "zio" % ZioVersion,
                      "dev.zio" %% "zio-test" % ZioVersion  % Test,
                      "dev.zio" %% "zio-test-sbt" % ZioVersion  % Test,
