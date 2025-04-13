@@ -34,13 +34,12 @@ object WalletFibersApp extends IOApp.Simple {
           _ <- supervisor.supervise[Unit](wallet2.topup(100.0).andWait(500.millis).foreverM)
           _ <- supervisor.supervise[Unit](wallet3.topup(100.0).andWait(2000.millis).foreverM)
           _ <- supervisor.supervise[Unit]{
-                 val b = for {
+                val b = for {
                           balance1 <- wallet1.balance
                           balance2 <- wallet2.balance
                           balance3 <- wallet3.balance
                         } yield println(s"balance1=$balance1, balance2=$balance2, balance3=$balance3")
-                 b.andWait(1.second).foreverM
-               }
+                b.andWait(1.second).foreverM}
           _ <- IO.readLine
         } yield ()
       }
