@@ -1,6 +1,13 @@
 package ru.otus.module3
 
+import ru.otus.module3.zioConcurrency.{currentTime, printEffectRunningTime}
+import ru.otus.module3.zio_homework.config.{AppConfig, Configuration}
+
 import scala.language.postfixOps
+import zio._
+
+import java.util.concurrent.TimeUnit
+import scala.util.Try
 
 package object zio_homework {
   /**
@@ -10,15 +17,20 @@ package object zio_homework {
    */
 
 
-
-  lazy val guessProgram = ???
+  lazy val guessProgram = for {
+    random <- Random.nextIntBetween(1, 4)
+    userGuess <- Console.readLine("What number am I thinking?\n")
+    touchInt <- ZIO.fromTry(Try(userGuess.toInt)).orElseFail("Numbers only")
+    _ <- if (random == touchInt) Console.printLine("yep!") else Console.printLine(s"It was $random. Try again")
+  } yield ()
 
   /**
    * 2. реализовать функцию doWhile (общего назначения), которая будет выполнять эффект до тех пор, пока его значение в условии не даст true
    * 
    */
 
-  def doWhile = ???
+  def doWhile[R, E, A, B](predicate: A => Boolean)(effect: ZIO[R, E, A]): ZIO[R, E, A] =
+    effect.repeatUntil(predicate)
 
   /**
    * 3. Реализовать метод, который безопасно прочитает конфиг из переменных окружения, а в случае ошибки вернет дефолтный конфиг
@@ -27,7 +39,11 @@ package object zio_homework {
    */
 
 
-  def loadConfigOrDefault = ???
+  def loadConfigOrDefault: ZIO[Any, Throwable, Unit] = for {
+    host <- Configuration.config.map(_.host).orElse(ZIO.succeed("localhost"))
+    port <- Configuration.config.map(_.port).orElse(ZIO.succeed("8080"))
+    _ <- Console.printLine(s"Host: $host, port: $port")
+  } yield ()
 
 
   /**
@@ -41,12 +57,12 @@ package object zio_homework {
    * 4.1 Создайте эффект, который будет возвращать случайным образом выбранное число от 0 до 10 спустя 1 секунду
    * Используйте сервис zio Random
    */
-  lazy val eff = ???
+  lazy val eff: UIO[Int] = Random.nextIntBetween(0, 10).delay(1.seconds)
 
   /**
    * 4.2 Создайте коллукцию из 10 выше описанных эффектов (eff)
    */
-  lazy val effects = ???
+  lazy val effects: List[UIO[Int]] = List.fill(10)(eff)
 
   
   /**
@@ -55,20 +71,51 @@ package object zio_homework {
    * можно использовать ф-цию printEffectRunningTime, которую мы разработали на занятиях
    */
 
-  lazy val app = ???
-
+  lazy val app = printEffectRunningTime {
+    for {
+    sum <- ZIO.foreach(effects)(identity).map(_.sum)
+      _ <- Console.printLine(s"Sum: $sum")
+    } yield ZIO.succeed(sum)
+  }
 
   /**
    * 4.4 Усовершенствуйте программу 4.3 так, чтобы минимизировать время ее выполнения
    */
 
-  lazy val appSpeedUp = ???
+  lazy val appSpeedUp = printEffectRunningTime {
+    for {
+      sum <- ZIO.foreachPar(effects)(identity).map(_.sum)
+      _ <- Console.printLine(s"Sum: $sum")
+    } yield ZIO.succeed(sum)
+  }
 
 
   /**
    * 5. Оформите ф-цию printEffectRunningTime разработанную на занятиях в отдельный сервис, так чтобы ее
    * можно было использовать аналогично zio.Console.printLine например
    */
+
+
+
+  trait RunningTime {
+    def printEffectRunningTime[R, E, A](zio: ZIO[R, E, A]): ZIO[R, E, A]
+  }
+
+  object RunningTimeLive extends RunningTime {
+
+    val currentTime: UIO[Long] = Clock.currentTime(TimeUnit.SECONDS)
+
+    override def printEffectRunningTime[R, E, A](zio: ZIO[R, E, A]): ZIO[R, E, A] = for{
+      start <- currentTime
+      r <- zio
+      end <- currentTime
+      _ <- Console.printLine(s"Running time ${end - start}").orDie
+    } yield r
+
+  }
+
+  def printEffectRunningTimeAsService[R, E, A](zio: ZIO[R, E, A]): ZIO[R with RunningTime, E, A] =
+    ZIO.serviceWithZIO[RunningTime](_.printEffectRunningTime(zio))
 
 
    /**
@@ -78,13 +125,18 @@ package object zio_homework {
      * 
      */
 
-  lazy val appWithTimeLogg = ???
+
+  val environment =
+    ZEnvironment[Console, Clock, RunningTime](Console.ConsoleLive, Clock.ClockLive, RunningTimeLive)
+
+
+  lazy val appWithTimeLogg = printEffectRunningTimeAsService(app)
 
   /**
     * 
     * Подготовьте его к запуску и затем запустите воспользовавшись ZioHomeWorkApp
     */
 
-  lazy val runApp = ???
+  lazy val runApp = appWithTimeLogg.provideEnvironment(environment)
 
 }
