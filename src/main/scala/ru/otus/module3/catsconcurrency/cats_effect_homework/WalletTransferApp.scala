@@ -1,10 +1,9 @@
-/*package ru.otus.module3.catsconcurrency.cats_effect_homework
+package ru.otus.module3.catsconcurrency.cats_effect_homework
 
 import cats.Monad
 import cats.effect.kernel.Ref
-import cats.effect.{IO, IOApp}
+import cats.effect.{IO, IOApp, Sync}
 import cats.implicits._
-import catsconcurrency.cats_effect_homework.Wallet.{BalanceTooLow, WalletError}
 import Wallet.{BalanceTooLow, WalletError}
 
 // Здесь мы хотим протестировать бизнес-логику использующую кошельки: функцию transfer.
@@ -28,14 +27,22 @@ object WalletTransferApp extends IOApp.Simple {
     }
 
   // todo: реализовать интерпретатор (не забывая про ошибку списания при недостаточных средствах)
-  final class InMemWallet[F[_]](ref: Ref[F, BigDecimal]) extends Wallet[F] {
-    def balance: F[BigDecimal] = ???
-    def topup(amount: BigDecimal): F[Unit] = ???
-    def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = ???
+  final class InMemWallet[F[_]](ref: Ref[F, BigDecimal])(implicit F: Sync[F]) extends Wallet[F] {
+    def balance: F[BigDecimal] = ref.get
+    def topup(amount: BigDecimal): F[Unit] = ref.update(_ + amount)
+    def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = for {
+      currentBalance <- ref.get
+      allowed = currentBalance >= amount
+      _ <- Sync[F].whenA(allowed)(topup(-amount))
+    } yield if (allowed) {
+      Right(())
+    } else {
+      Left(BalanceTooLow)
+    }
   }
 
   // todo: реализовать конструктор. Снова хитрая сигнатура, потому что создание Ref - это побочный эффект
-  def wallet(balance: BigDecimal): IO[Wallet[IO]] = ???
+  def wallet(balance: BigDecimal): IO[Wallet[IO]] = Ref.of[IO, BigDecimal](balance).map(new InMemWallet(_))
 
   // а это тест, который выполняет перевод с одного кошелька на другой и выводит балансы после операции. Тоже менять не нужно
   def testTransfer: IO[(BigDecimal, BigDecimal)] =
@@ -53,4 +60,3 @@ object WalletTransferApp extends IOApp.Simple {
   }
 
 }
-*/
