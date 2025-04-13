@@ -56,11 +56,16 @@ final class FileWallet[F[_]: Sync](id: WalletId) extends Wallet[F] {
     }
   } yield ()
 
-  override def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = for {
+  private type WithdrawalResult = Either[WalletError, Unit]
+
+  override def withdraw(amount: BigDecimal): F[WithdrawalResult] = for {
     currentBalance <- balance
     approved = currentBalance >= amount
-    _ <- Sync[F].whenA(approved)(topup(-amount))
-  } yield if (approved) Right(()) else Left(BalanceTooLow)
+    result <- Sync[F].whenA[Unit](approved)(topup(-amount))
+  } yield result match {
+    case () => Right(())
+    case _ => Left(Wallet.BalanceTooLow)
+  }
 }
 
 object Wallet {
