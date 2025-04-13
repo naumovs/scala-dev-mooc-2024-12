@@ -1,10 +1,8 @@
-package ru.otus.module3.catsconcurrency.cats_effect_homework
+/*package ru.otus.module3.catsconcurrency.cats_effect_homework
 
-import cats.effect.{IO, Sync}
+import cats.effect.Sync
 import cats.implicits._
-import Wallet.{WalletError, _}
-import cats.effect.kernel.Resource.{Pure, both}
-import cats.kernel.Semigroup
+import Wallet._
 
 // DSL управления электронным кошельком
 trait Wallet[F[_]] {
@@ -27,42 +25,9 @@ trait Wallet[F[_]] {
 // - java.nio.file.Files.exists
 // - java.nio.file.Paths.get
 final class FileWallet[F[_]: Sync](id: WalletId) extends Wallet[F] {
-
-  import java.nio.file._
-
-  private val tmpDir = scala.util.Properties.envOrElse("TMP", "/tmp")
-
-  override def balance: F[BigDecimal] = Sync[F].delay {
-    if (Files.exists(Paths.get(s"$tmpDir/$id"))) {
-      BigDecimal(
-        Files.readString(Paths.get(s"$tmpDir/$id"))
-      )
-    } else {
-      0
-    }
-  }
-  override def topup(amount: BigDecimal): F[Unit] = for {
-    currentBalance <- balance
-    _ <- Sync[F].delay {
-      if (Files.exists(Paths.get(s"$tmpDir/$id"))) {
-        Files.writeString(Paths.get(s"$tmpDir/$id"), Semigroup[BigDecimal]
-          .combine(currentBalance, amount).toString)
-      } else {
-        Files.writeString(Paths.get(s"$tmpDir/$id"), amount.toString,
-          StandardOpenOption.CREATE)
-      }
-    }
-  } yield ()
-
-
-  override def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = for {
-      currentBalance <- balance
-      _ <- if (currentBalance >= amount) {
-        topup(-amount)
-      } else {
-        Sync[F].delay(BalanceTooLow)
-      }
-    } yield Right(())
+  def balance: F[BigDecimal] = ???
+  def topup(amount: BigDecimal): F[Unit] = ???
+  def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = ???
 }
 
 object Wallet {
@@ -72,14 +37,11 @@ object Wallet {
   // Здесь нужно использовать обобщенную версию уже пройденного вами метода IO.delay,
   // вызывается она так: Sync[F].delay(...)
   // Тайпкласс Sync из cats-effect описывает возможность заворачивания сайд-эффектов
-  def fileWallet[F[_]: Sync](id: WalletId): F[Wallet[F]] = {
-    for {
-      wallet <- Sync[F].delay(new FileWallet[F](id))
-    } yield wallet
-  }
+  def fileWallet[F[_]: Sync](id: WalletId): F[Wallet[F]] = ???
 
   type WalletId = String
 
   sealed trait WalletError
   case object BalanceTooLow extends WalletError
 }
+*/
