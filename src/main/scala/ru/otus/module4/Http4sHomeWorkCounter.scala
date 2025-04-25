@@ -27,9 +27,9 @@ object Http4sHomeWork {
     def publicRoutes(counterRef: Ref[IO, Int]): HttpRoutes[IO] = HttpRoutes.of {
       case GET -> Root / "counter" =>
         for {
-          _ <- counterRef.update(_ + 1) // Увеличиваем счетчик
-          current <- counterRef.get     // Получаем текущее значение
-          response <- Ok(CounterResponse(current)) // Возвращаем ответ
+          _ <- counterRef.update(_ + 1)
+          current <- counterRef.get
+          response <- Ok(CounterResponse(current))
         } yield response
     }
   }
@@ -55,7 +55,7 @@ object Http4sHomeWork {
       .build
 }
 
-object Http4sHomeWorkServer extends IOApp.Simple {
+object Http4sHomeWorkCounterServer extends IOApp.Simple {
   override def run: IO[Unit] = for {
     counterRef <- Ref[IO].of(0)
     _ <- Http4sHomeWork.server(counterRef).use(_ => IO.never)
